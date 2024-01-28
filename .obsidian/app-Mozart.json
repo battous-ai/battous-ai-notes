@@ -1,0 +1,8 @@
+{
+  "promptDelete": false,
+  "attachmentFolderPath": "./assets/to read",
+  "alwaysUpdateLinks": true,
+  "spellcheckDictionary": [
+    "EventHandler"
+  ]
+}

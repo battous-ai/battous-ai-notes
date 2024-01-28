@@ -1,0 +1,8 @@
+{
+  "attachmentFolderPath": "./assets/VAE",
+  "promptDelete": false,
+  "vimMode": true,
+  "readableLineLength": false,
+  "showLineNumber": true,
+  "strictLineBreaks": false
+}
