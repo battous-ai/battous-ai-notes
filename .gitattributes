@@ -1,1 +1,2 @@
 notes[[:space:]]on[[:space:]]books/assets/ filter=lfs diff=lfs merge=lfs -text
+computer[[:space:]]architecture/assets/ filter=lfs diff=lfs merge=lfs -text

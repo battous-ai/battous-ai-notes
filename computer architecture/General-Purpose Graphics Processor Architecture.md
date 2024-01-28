@@ -65,6 +65,23 @@
 	- at runtime, GPU hardware executes groups of scalar threads (called **warps**) in [[lockstep]] on SIMD hardware
 		- the execution model is SIMT
 ## 2.1 Execution Model
+- threads in a compute kernel ares organized into a hierarchg composed of a *grid of thread blocks* consisting of *warps*
+- execute groups of thread together in lock-step → to improve efficiency
+	- 32 threads → warp
+	- warps → thread block or cooperative thread array (CTA)
+- compiler and hardware enable the programmer to remain oblivious to the lock-step nature of thread execution in a warp
+	- each thread appears to be independent
+- threads within a CTA can communicate with each other via a per compute core scratchpad memory (**shared memory**)
+	- each  streaming multiprocessor contains a single shared memory
+		- the memory space is divided up among all CTAs running on that SM
+		- as a software controlled cache
+- threads *within* a CTA → synchronize using hardware-supported barrier instructions
+- thread *in different* CTAs → synchronize through a global address space (accessible to all threads)
+	- expensive
+## 2.2 GPU Instruction Set Architectures
+### 2.2.1 Nvidia GPU Instruction Set Architectures
+- nvidia high-level virtual instruction set architecture → Parallel Thread Execution ISA (PTX)
+- 
 
 
 
