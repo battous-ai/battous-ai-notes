@@ -81,9 +81,82 @@
 ## 2.2 GPU Instruction Set Architectures
 ### 2.2.1 Nvidia GPU Instruction Set Architectures
 - nvidia high-level virtual instruction set architecture → Parallel Thread Execution ISA (PTX)
-- 
-
-
-
-
-
+# Chapter 3 The SIMT Core: Instruction and Register Data Flow
+- GPU architecture
+	- the SIMT cores that implement the computation
+	- memory system
+- ![[image-20240128175221982.png]]
+	- the pipeline consists of 3 scheduling loops
+		- instruction fetch loop
+			- Fetch
+			- I-Cache
+			- Decode
+			- I-Buffer
+		- instruction issue loop
+			- I-Buffer
+			- Scoreboard
+			- Issue
+			- SIMT Stack
+		- register access scheduling loop
+			- Operand Collector
+			- ALU
+			- Memory
+## 3.1 One-Loop Approximation
+ - case of a single scheduler
+	 - the unit of scheduling is warp
+		 - each cycle the hardware selects one for scheduling
+	 - the approximation
+		 1. fetch the next instruction to execute for the warp 
+			 - by the warp’s program counter 
+				 - access a instruction memory
+		 2. decode the instruction
+		 3. 1) fetch the source operand registers
+		 3. 2) determine the SIMT execution mask values (in parallel with fetching source operands from the register file) ?
+			 1. ==how to determine? We can only predict?==
+		 4. execution proceeds in a single-instruction, multiple-data manner
+			- each thread executes on the function unit associated with a ==lane==? provided the SIMT execution mask is set
+### 3.1.1 SIMT Execution Masking
+- SIMT execution model
+	- the abstraction that individual threads execute completely independently
+	- achieved via a combination of
+		- traditional prediciton
+		- a tack of predicate masks (*SIMT stack*)
+	- SIMT stack solves 2 issues
+		- nested control flow 
+		- ==skipping computation entirely while all threads in a warp avoid a control flow path==
+- ==how does GPU hardware enable thread within a warp to follow different paths through the code while employing a SIMD datapath that allows only one instruction to execute per cycle?== (a.k.a branch divergence handling mechanism)
+	- to serialize execution of threads following different paths within a given warp
+	- to achieve this serialization of divergent code paths
+		- stack with three entries
+			- a reconvergence program counter (RPC)
+				- where threads that diverge can be forced to continue executing in lock-step
+			- the address of the next instruction to execute (Next PC)
+			- an active mask
+		- order of the stack entries following a divergent branch
+			- entry with the most active threads first
+			- then the entry with fewer active threads
+### 3.1.2 SIMT Deadlock and Stackless SIMT Architectures
+- stack-based implementation of SIMT can lead to a deadlock condition
+	- ![[image-20240130105258105.png]]
+	- to reach the reconvergence point, all divergent threads must complete computation
+		- but the other threads are still waiting for the mutex to release
+			- which can only be completed when the reconvergence point is reached
+				- hence deadlock
+- nvidia new thread divergence management approach since Volta
+	- called Independent Thread Scheduling
+	- stackless
+	- the key idea is to replace the stack with per warp convergence barriers
+	- ![[image-20240130120132208.png]]
+	- stored in the register and used by hardware warp scheduler
+	- *Barrier Participation Mask* 
+		- track which threads within a given warp participate in a given convergence barrier
+		- may be more than one barrier participation mask for a given warp
+		- threads tracked by a given barrier participation mask will wait for each other to reach a common point in the program following a divergent branch and thereby reconverge together
+	- *Barrier State*
+		- tracks which threads have arrived at a given convergence barrier <u>sdfsdf</u>
+	- *Thread State*
+		- tracks (the threads in a given warp)
+			- is ready to execute
+			- blocked at a convergence barrier 
+				- if so, which one
+			- has yielded
